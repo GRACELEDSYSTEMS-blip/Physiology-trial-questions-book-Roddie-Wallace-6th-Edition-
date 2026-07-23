@@ -109,6 +109,29 @@ body {
 .badge-instant { background: rgba(232,201,106,0.2); color: var(--gold-light); border: 1px solid rgba(232,201,106,0.3); }
 .badge-submit  { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2); }
 
+/* Header back button — shows during quiz/results/review */
+.header-back-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--r-btn);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 36px;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.header-back-btn:hover  { background: rgba(255,255,255,0.18); color: #fff; }
+.header-back-btn:active { transform: scale(0.96); }
+.header-back-btn.visible { display: flex; }
+
 /* ── PAGE SYSTEM ───────────────────────────────────────────────── */
 .page { display: none; }
 .page.active { display: block; animation: fadeUp 0.35s ease; }
@@ -1093,7 +1116,13 @@ body {
       </div>
       <div class="header-sub">Human Physiology · Grace-Led Systems</div>
     </div>
-    <div id="header-badge" class="header-badge"></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <button class="header-back-btn" id="header-back-btn" onclick="headerBackAction()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 2L4 6l4 4"/></svg>
+        Back
+      </button>
+      <div id="header-badge" class="header-badge"></div>
+    </div>
   </div>
 </header>
 
@@ -1367,10 +1396,6 @@ body {
 <!-- ══ QUIZ PAGE ════════════════════════════════════════════════════════ -->
 <div id="page-quiz" class="page">
   <div class="quiz-meta-bar">
-    <button class="back-btn" onclick="confirmGoHome()">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 2L4 6l4 4"/></svg>
-      Back
-    </button>
     <span class="quiz-info-tag" id="quiz-info-tag"></span>
     <div class="tally-chip" id="tally-chip"><span id="tally-count">0</span>&nbsp;answered</div>
   </div>
@@ -1498,10 +1523,11 @@ function showPage(id) {
   document.getElementById(id).classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  const stepNav  = document.getElementById('step-nav');
+  const stepNav   = document.getElementById('step-nav');
   const submitBar = document.getElementById('submit-bar');
+  const hdrBack   = document.getElementById('header-back-btn');
 
-  // Show/hide step nav
+  // Step nav — only on step pages
   if (id === 'page-step1' || id === 'page-step2') {
     stepNav.classList.remove('hidden');
     submitBar.classList.remove('visible');
@@ -1511,10 +1537,25 @@ function showPage(id) {
   } else {
     stepNav.classList.add('hidden');
   }
-  // Home page — also hide step nav
+
+  // Header back button — show on quiz, results, review
+  const showBack = ['page-quiz','page-results','page-review'].includes(id);
+  hdrBack.classList.toggle('visible', showBack);
+
+  // Home — clean slate
   if (id === 'page-home') {
-    stepNav.classList.add('hidden');
     submitBar.classList.remove('visible');
+  }
+}
+
+// What the header back button does depends on which page you're on
+function headerBackAction() {
+  const active = document.querySelector('.page.active');
+  if (!active) return;
+  switch (active.id) {
+    case 'page-quiz':    confirmGoHome(); break;
+    case 'page-results': confirmGoHome(); break;
+    case 'page-review':  showPage('page-results'); break;
   }
 }
 
